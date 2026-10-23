@@ -4,14 +4,18 @@
 cd test && npm install && npm test
 ```
 
-`compile.js` builds `../zNSAnchor.sol` and `../MockZNSAnchor.sol` with solc 0.8.36 (the
-pinned pragma) and fails on any error. `test.js` then exercises the contract's state
-machine against an in-process EVM.
+`compile.js` builds `../zNSAnchor.sol`, `../MockZNSAnchor.sol` and the test-only
+`TestVerifiers.sol` with solc 0.8.37 (the pinned pragma, for the pinned `evmVersion`
+"shanghai") and fails on any error. `test.js` then exercises the contract's state machine
+against an in-process EVM, and `fuzz.js` drives seeded random sequences of operations
+against a reference model (see the main README, section 6).
 
-Tests run against **MockZNSAnchor**, which overrides `_verifyProof` to a no-op. That is
-deliberate: it isolates the contract's own logic — root chaining, height monotonicity,
-authorisation, pause, the two-step upgrade and rollback flows — from SP1 proof
-generation, which is covered separately by the prover's own suite.
+Most tests run against **MockZNSAnchor**, which overrides `_verifyProof` to a no-op. That
+is deliberate: it isolates the contract's own logic — root chaining, height monotonicity,
+authorisation, pause, the timelocked rules change, the rollback flow and the epoch — from
+SP1 proof generation, which is covered separately by the prover's own suite. The rules
+change is also driven through the real `zNSAnchor`, with the stand-in verifiers in
+`TestVerifiers.sol` in place of SP1's.
 
 Some tests assert on the **event log** rather than only on resulting state, via the
 `events()` helper. Privileged changes are meant to be auditable from logs alone, so
